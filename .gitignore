@@ -31,3 +31,5 @@ build/
 
 ### VS Code ###
 .vscode/
+# Allow JSON files in the resources directory
+!**/src/main/resources/**/*.json
