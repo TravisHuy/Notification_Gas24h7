@@ -15,6 +15,7 @@ import org.springframework.core.io.ClassPathResource;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 @Configuration
 public class FirebaseConfig {
@@ -25,24 +26,13 @@ public class FirebaseConfig {
     @Value("${firebase.storage.bucket}")
     private String storageBucket;
 
-
     @Bean
-    public FirebaseApp firebaseApp() throws IOException{
-
-        JSONObject firebaseCredentials = new JSONObject();
-        firebaseCredentials.put("type", System.getenv("FIREBASE_TYPE"));
-        firebaseCredentials.put("project_id", System.getenv("FIREBASE_PROJECT_ID"));
-        firebaseCredentials.put("private_key_id", System.getenv("FIREBASE_PRIVATE_KEY_ID"));
-        firebaseCredentials.put("private_key", System.getenv("FIREBASE_PRIVATE_KEY").replace("\\n", "\n"));
-        firebaseCredentials.put("client_email", System.getenv("FIREBASE_CLIENT_EMAIL"));
-        firebaseCredentials.put("client_id", System.getenv("FIREBASE_CLIENT_ID"));
-        firebaseCredentials.put("auth_uri", System.getenv("FIREBASE_AUTH_URI"));
-        firebaseCredentials.put("token_uri", System.getenv("FIREBASE_TOKEN_URI"));
-        firebaseCredentials.put("auth_provider_x509_cert_url", System.getenv("FIREBASE_AUTH_PROVIDER_X509_CERT_URL"));
-        firebaseCredentials.put("client_x509_cert_url", System.getenv("FIREBASE_CLIENT_X509_CERT_URL"));
+    public FirebaseApp firebaseApp() throws IOException {
+        String firebaseCredentials = System.getenv("FIREBASE_CREDENTIALS");
+        InputStream credentialsStream = new ByteArrayInputStream(firebaseCredentials.getBytes());
 
         FirebaseOptions options = FirebaseOptions.builder()
-                .setCredentials(GoogleCredentials.fromStream(new ByteArrayInputStream(firebaseCredentials.toString().getBytes())))
+                .setCredentials(GoogleCredentials.fromStream(credentialsStream))
                 .setDatabaseUrl(databaseUrl)
                 .setStorageBucket(storageBucket)
                 .build();
@@ -54,12 +44,14 @@ public class FirebaseConfig {
     public StorageClient storageClient() throws IOException {
         return StorageClient.getInstance(firebaseApp());
     }
+
     @Bean
     public DatabaseReference databaseReference() throws IOException {
         return FirebaseDatabase.getInstance(firebaseApp()).getReference();
     }
+
     @Bean
-    public FirebaseMessaging firebaseMessaging() throws IOException{
+    public FirebaseMessaging firebaseMessaging() throws IOException {
         return FirebaseMessaging.getInstance(firebaseApp());
     }
 }
