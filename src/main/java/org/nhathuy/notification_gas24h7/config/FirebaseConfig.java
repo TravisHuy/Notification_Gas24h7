@@ -26,10 +26,19 @@ public class FirebaseConfig {
     @Value("${firebase.storage.bucket}")
     private String storageBucket;
 
+    @Value("${firebase.service.account.file}")
+    private String serviceAccountFile;
+
     @Bean
     public FirebaseApp firebaseApp() throws IOException {
+        InputStream credentialsStream;
         String firebaseCredentials = System.getenv("FIREBASE_CREDENTIALS");
-        InputStream credentialsStream = new ByteArrayInputStream(firebaseCredentials.getBytes());
+        if (firebaseCredentials != null && !firebaseCredentials.trim().isEmpty()) {
+            credentialsStream = new ByteArrayInputStream(firebaseCredentials.getBytes());
+        }
+        else{
+            credentialsStream = new ClassPathResource(serviceAccountFile).getInputStream();
+        }
 
         FirebaseOptions options = FirebaseOptions.builder()
                 .setCredentials(GoogleCredentials.fromStream(credentialsStream))
