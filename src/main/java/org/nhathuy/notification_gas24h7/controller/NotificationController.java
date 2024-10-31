@@ -16,6 +16,13 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
+
+    @GetMapping
+    public ResponseEntity<String> getNotifications() {
+        return ResponseEntity.ok("Hello World");
+    }
+
+
     @Autowired
     public NotificationController(NotificationService notificationService){
         this.notificationService=notificationService;

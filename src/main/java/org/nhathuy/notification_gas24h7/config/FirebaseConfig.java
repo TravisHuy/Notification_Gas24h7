@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -32,21 +33,29 @@ public class FirebaseConfig {
     @Bean
     public FirebaseApp firebaseApp() throws IOException {
         InputStream credentialsStream;
-        String firebaseCredentials = System.getenv("FIREBASE_CREDENTIALS");
-        if (firebaseCredentials != null && !firebaseCredentials.trim().isEmpty()) {
-            credentialsStream = new ByteArrayInputStream(firebaseCredentials.getBytes());
-        }
-        else{
+
+        // Check if we're using environment variable path
+        String credentialsPath = System.getenv("FIREBASE_CREDENTIALS_PATH");
+        if (credentialsPath != null && !credentialsPath.isEmpty()) {
+            credentialsStream = new FileInputStream(credentialsPath);
+        } else {
             credentialsStream = new ClassPathResource(serviceAccountFile).getInputStream();
         }
 
-        FirebaseOptions options = FirebaseOptions.builder()
-                .setCredentials(GoogleCredentials.fromStream(credentialsStream))
-                .setDatabaseUrl(databaseUrl)
-                .setStorageBucket(storageBucket)
-                .build();
+        try {
+            FirebaseOptions options = FirebaseOptions.builder()
+                    .setCredentials(GoogleCredentials.fromStream(credentialsStream))
+                    .setDatabaseUrl(databaseUrl)
+                    .setStorageBucket(storageBucket)
+                    .build();
 
-        return FirebaseApp.initializeApp(options);
+            if (FirebaseApp.getApps().isEmpty()) {
+                return FirebaseApp.initializeApp(options);
+            }
+            return FirebaseApp.getInstance();
+        } finally {
+            credentialsStream.close();
+        }
     }
 
     @Bean

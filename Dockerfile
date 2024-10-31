@@ -9,5 +9,10 @@ RUN mvn clean package -DskipTests
 
 FROM openjdk:17-jdk-slim
 COPY --from=build /app/target/*.jar app.jar
+
+COPY src/main/resources/test.json /test.json
+ENV FIREBASE_CREDENTIALS_PATH=/test.json
+ENV SPRING_PROFILES_ACTIVE=prod
+
 EXPOSE 8080
 ENTRYPOINT ["java","-jar","/app.jar"]
